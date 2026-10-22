@@ -1,0 +1,42 @@
+resources:
+  jobs:
+    New_Job_2026_10_22_13_03_10:
+      name: New Job 2026-10-22 13:03:10
+      tasks:
+        - task_key: ingestion_to_bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/deepaksinghal@cyntexa.com/Cyntexa_DIAP/ingestion
+            source: WORKSPACE
+          max_retries: 2
+          min_retry_interval_millis: 60000
+          disable_auto_optimization: false
+        - task_key: bronze_to_silver
+          depends_on:
+            - task_key: ingestion_to_bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/deepaksinghal@cyntexa.com/Cyntexa_DIAP/Cleaning
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: silver_to_gold
+          depends_on:
+            - task_key: bronze_to_silver
+          notebook_task:
+            notebook_path: /Workspace/Users/deepaksinghal@cyntexa.com/Cyntexa_DIAP/gold
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: QualityChecks
+          depends_on:
+            - task_key: silver_to_gold
+          notebook_task:
+            notebook_path: /Workspace/Users/deepaksinghal@cyntexa.com/Cyntexa_DIAP/QualityChecks
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: DDEV
+      performance_target: PERFORMANCE_OPTIMIZED
